@@ -1,13 +1,16 @@
+
+
 class pwdPage():
     password: None
     time: None
     RoomID: None
+    RoomName: None
 
-    def __init__(self, password, time, RoomID) -> None:
+    def __init__(self, password, time, RoomID, RoomName) -> None:
         self.password = password
         self.time = time
         self.RoomID = RoomID
-        pass
+        self.RoomName = RoomName
 
     def getRequestStruct(self):
         return {
@@ -23,6 +26,18 @@ class pwdPage():
             },
             "備註":
             {
-                "rich_text": [{"type": "text", "text": {"content": "親愛的房客您好,您於 2024-04-01 預定房間，我們提供您大門密碼：#12345 以及房間密碼: #123456, 如有入住任何問題，請聯絡  Line小管家:@123456, 或撥打電話:09-32-756-682"}}]
+                "rich_text": [{"type": "text", "text": {"content":
+                                                        '''鐵門密碼 6150#
+                                                        住房密碼 {}
+                                                        入住房號 {}
+
+                                                        旅客您好!
+                                                        以上為您{}的入住密碼，
+                                                        （若連續訂房密碼不變）
+                                                        請於15: 00後入住，11: 00前退房。
+                                                        旅宿為全自助旅宿，客廳為公共空間，敬請降低音量。
+                                                        若有任何疑問可以聯絡官方line(ID: @ 508thxrc)，
+                                                        祝順心'''
+                                                        .format(self.password, self.RoomName, self.time)}}]
             }
         }

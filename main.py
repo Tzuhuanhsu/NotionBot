@@ -7,6 +7,8 @@ import json
 import arrow
 from Room import Room
 from pwdPage import pwdPage
+from concurrent.futures import ThreadPoolExecutor
+
 
 randomMin = 0
 randomMax = 9
@@ -19,6 +21,7 @@ class notionBot():
     rooms = []
     pwdRecord = []
     config = None
+    count = 0
 
     def __init__(self) -> None:
         pass
@@ -84,28 +87,33 @@ class notionBot():
                     pwd = self.crateDoomPwd()
                     if pwd not in self.pwdRecord:
                         self.pwdRecord.append(pwd)
-                        page = pwdPage(pwd, date, room.id)
-                        # self.requestAddPage(page)
-                        threading.Thread(
-                            target=self.requestAddPage, args=(page,)).start()
+                        page = pwdPage(pwd, date, room.id, room.name)
+                        self.requestAddPage(page)
                         break
                     else:
                         print("repeat pwd", pwd)
 
     def requestAddPage(self, pwdPage: pwdPage):
+        self.count += 1
         url = self.config["API"]["AddPage"]
         payload = {"parent": {
             "database_id": self.config["notionConfig"]["DBRoomPwd"]},
             "properties": pwdPage.getRequestStruct()}
-        res = requests.post(url=url, headers=self.getHeader(), json=payload)
+        # print(payload)
+        with ThreadPoolExecutor() as executor:
+            future = executor.submit(requests.post, url=url,
+                                     headers=self.getHeader(), json=payload)
 
-        print(pwdPage.password, "res=", res.status_code)
+        # res = requests.post(url=url, headers=self.getHeader(), json=payload)
+            print("count", self.count)
+            print(pwdPage.password, "res=", future.result().reason)
+            executor.shutdown(wait=False)
 
     # 取得今年的總天數
 
     def getTotalDay(self, year) -> int:
         if ((year % 4 == 0 and year % 100 != 0) or year % 400 == 0):
-            return 1
+            return 365+1
         else:
             return 365
 
